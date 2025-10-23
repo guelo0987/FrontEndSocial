@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, Upload, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useCatalogs } from "@/hooks/useCatalogs";
 
 interface CreatePostSectionProps {
   onPostGenerated: (post: {
@@ -26,6 +26,8 @@ export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) =
     role: "user" | "assistant";
     content: string;
   }>>([]);
+
+  const { objectives, styles, isLoading: catalogsLoading } = useCatalogs();
 
   const handleGenerate = async () => {
     if (!message.trim()) {
@@ -120,32 +122,32 @@ export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) =
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Objetivo del post</Label>
-            <Select value={objective} onValueChange={setObjective}>
+            <Select value={objective} onValueChange={setObjective} disabled={catalogsLoading}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona un objetivo" />
+                <SelectValue placeholder={catalogsLoading ? "Cargando..." : "Selecciona un objetivo"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="promocion">📢 Promoción</SelectItem>
-                <SelectItem value="educativo">📚 Educativo</SelectItem>
-                <SelectItem value="sorteo">🎁 Sorteo/Concurso</SelectItem>
-                <SelectItem value="inspiracional">💡 Inspiracional</SelectItem>
-                <SelectItem value="noticia">📰 Noticia</SelectItem>
+                {objectives.filter(obj => obj.is_active).map((objectiveItem) => (
+                  <SelectItem key={objectiveItem.id} value={objectiveItem.name}>
+                    {objectiveItem.name.charAt(0).toUpperCase() + objectiveItem.name.slice(1)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
             <Label>Estilo visual</Label>
-            <Select value={style} onValueChange={setStyle}>
+            <Select value={style} onValueChange={setStyle} disabled={catalogsLoading}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecciona un estilo" />
+                <SelectValue placeholder={catalogsLoading ? "Cargando..." : "Selecciona un estilo"} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="minimalista">Minimalista</SelectItem>
-                <SelectItem value="moderno">Moderno</SelectItem>
-                <SelectItem value="profesional">Profesional</SelectItem>
-                <SelectItem value="creativo">Creativo</SelectItem>
-                <SelectItem value="elegante">Elegante</SelectItem>
+                {styles.filter(styleItem => styleItem.is_active).map((styleItem) => (
+                  <SelectItem key={styleItem.id} value={styleItem.name}>
+                    {styleItem.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

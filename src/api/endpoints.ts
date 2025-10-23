@@ -18,9 +18,12 @@ export const API_ENDPOINTS = {
   },
   POSTS: {
     GET: `${BASE_URL}/api/posts/`,
-    CREATE: `${BASE_URL}/api/posts`,
-    UPDATE: `${BASE_URL}/api/posts`,
-    DELETE: `${BASE_URL}/api/posts`,
+    GET_BY_ID: `${BASE_URL}/api/posts/`,
+    DELETE: `${BASE_URL}/api/posts/`,
+  },
+  CATALOG: {
+    OBJECTIVES: `${BASE_URL}/api/catalog/objectives`,
+    STYLES: `${BASE_URL}/api/catalog/styles`,
   },
 
 } as const;
