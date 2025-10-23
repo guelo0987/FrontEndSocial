@@ -1,0 +1,61 @@
+import { useState } from "react";
+import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { CreatePostSection } from "@/components/dashboard/CreatePostSection";
+import { InstagramPreview } from "@/components/dashboard/InstagramPreview";
+
+const Dashboard = () => {
+  const [activeSection, setActiveSection] = useState("crear");
+  const [generatedPost, setGeneratedPost] = useState<{
+    image: string;
+    title: string;
+    subtitle: string;
+    caption: string;
+    hashtags: string[];
+  } | null>(null);
+
+  return (
+    <div className="flex h-screen bg-surface">
+      <DashboardSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <DashboardHeader />
+        
+        <div className="flex-1 flex overflow-hidden">
+          <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+            {activeSection === "crear" && (
+              <CreatePostSection onPostGenerated={setGeneratedPost} />
+            )}
+            {activeSection === "historial" && (
+              <div className="animate-fade-in">
+                <h2 className="text-2xl font-bold mb-6">Historial de Posts</h2>
+                <div className="glass rounded-2xl p-8 text-center">
+                  <p className="text-muted-foreground">
+                    Aquí aparecerán tus posts generados anteriormente
+                  </p>
+                </div>
+              </div>
+            )}
+            {activeSection === "empresa" && (
+              <div className="animate-fade-in">
+                <h2 className="text-2xl font-bold mb-6">Información de Empresa</h2>
+                <div className="glass rounded-2xl p-8 text-center">
+                  <p className="text-muted-foreground">
+                    Configura la información de tu empresa
+                  </p>
+                </div>
+              </div>
+            )}
+          </main>
+
+          {/* Preview Panel - Right side */}
+          <aside className="hidden xl:block w-[380px] border-l border-border bg-background p-6 overflow-y-auto">
+            <InstagramPreview post={generatedPost} />
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
