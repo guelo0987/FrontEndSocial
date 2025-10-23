@@ -2,29 +2,90 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { authService } from "@/services/auth";
+import { useNotifications, ApiResponseHandler } from "@/helpers";
+import type { ClientLoginRequest, ClientCreateRequest } from "@/models";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { auth, error, success } = useNotifications();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email || !password || (!isLogin && !name)) {
-      toast.error("Por favor completa todos los campos");
+    if (!email || !password || (!isLogin && (!name || !whatsapp))) {
+      error({
+        title: "Campos requeridos",
+        description: "Por favor completa todos los campos"
+      });
       return;
     }
 
-    // Simulate authentication
-    localStorage.setItem("isAuthenticated", "true");
-    toast.success(isLogin ? "¡Bienvenido de vuelta!" : "¡Cuenta creada exitosamente!");
-    navigate("/dashboard");
+    setIsLoading(true);
+
+    try {
+      if (isLogin) {
+        // Proceso de login
+        const credentials: ClientLoginRequest = { email, password };
+        const response = await authService.login(credentials);
+        
+        if (ApiResponseHandler.isSuccess(response)) {
+          // Guardar token y datos del usuario
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+          localStorage.setItem("isAuthenticated", "true");
+          
+          auth.loginSuccess();
+          navigate("/dashboard");
+        } else {
+          auth.loginError(response.message);
+        }
+      } else {
+        // Proceso de registro
+        const userData: ClientCreateRequest = { 
+          name, 
+          email, 
+          password,
+          whatsapp_number: whatsapp,
+          gemini_prompt_prefix: ""
+        };
+        const response = await authService.register(userData);
+        
+        if (ApiResponseHandler.isSuccess(response)) {
+          // Guardar token y datos del usuario
+          localStorage.setItem("token", response.data.token);
+          localStorage.setItem("user", JSON.stringify(response.data.user));
+          localStorage.setItem("isAuthenticated", "true");
+          
+          success({
+            title: "¡Cuenta creada!",
+            description: "Tu cuenta se ha creado exitosamente"
+          });
+          navigate("/dashboard");
+        } else {
+          error({
+            title: "Error al crear cuenta",
+            description: response.message
+          });
+        }
+      }
+    } catch (err) {
+      console.error("Error en autenticación:", err);
+      error({
+        title: "Error inesperado",
+        description: "Ha ocurrido un error inesperado. Inténtalo de nuevo."
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -51,17 +112,30 @@ const Auth = () => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
-              <div className="space-y-2">
-                <Label htmlFor="name">Nombre completo</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Juan Pérez"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="h-12"
-                />
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nombre completo</Label>
+                  <Input
+                    id="name"
+                    type="text"
+                    placeholder="Juan Pérez"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="h-12"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="whatsapp">Número de WhatsApp</Label>
+                  <Input
+                    id="whatsapp"
+                    type="tel"
+                    placeholder="+1234567890"
+                    value={whatsapp}
+                    onChange={(e) => setWhatsapp(e.target.value)}
+                    className="h-12"
+                  />
+                </div>
+              </>
             )}
 
             <div className="space-y-2">
@@ -92,9 +166,19 @@ const Auth = () => {
               type="submit"
               className="w-full h-12 text-base font-semibold group"
               size="lg"
+              disabled={isLoading}
             >
-              {isLogin ? "Iniciar sesión" : "Crear cuenta"}
-              <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                  {isLogin ? "Iniciando sesión..." : "Creando cuenta..."}
+                </>
+              ) : (
+                <>
+                  {isLogin ? "Iniciar sesión" : "Crear cuenta"}
+                  <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </>
+              )}
             </Button>
           </form>
 
