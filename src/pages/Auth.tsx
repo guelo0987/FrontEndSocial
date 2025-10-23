@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { authService } from "@/services/auth";
+import { authService } from "@/services/authService";
 import { useNotifications, ApiResponseHandler } from "@/helpers";
 import type { ClientLoginRequest, ClientCreateRequest } from "@/models";
 

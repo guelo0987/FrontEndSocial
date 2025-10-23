@@ -3,6 +3,8 @@ import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { CreatePostSection } from "@/components/dashboard/CreatePostSection";
 import { InstagramPreview } from "@/components/dashboard/InstagramPreview";
+import { CompanyInfoSection } from "@/components/dashboard/CompanyInfoSection";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState("crear");
@@ -13,9 +15,11 @@ const Dashboard = () => {
     caption: string;
     hashtags: string[];
   } | null>(null);
+  
 
   return (
-    <div className="flex h-screen bg-surface">
+    <ProtectedRoute>
+      <div className="flex h-screen bg-surface">
       <DashboardSidebar activeSection={activeSection} setActiveSection={setActiveSection} />
       
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -38,12 +42,7 @@ const Dashboard = () => {
             )}
             {activeSection === "empresa" && (
               <div className="animate-fade-in">
-                <h2 className="text-2xl font-bold mb-6">Información de Empresa</h2>
-                <div className="glass rounded-2xl p-8 text-center">
-                  <p className="text-muted-foreground">
-                    Configura la información de tu empresa
-                  </p>
-                </div>
+                <CompanyInfoSection />
               </div>
             )}
           </main>
@@ -55,6 +54,7 @@ const Dashboard = () => {
         </div>
       </div>
     </div>
+    </ProtectedRoute>
   );
 };
 

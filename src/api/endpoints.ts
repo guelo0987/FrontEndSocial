@@ -10,4 +10,11 @@ export const API_ENDPOINTS = {
     VERIFY: `${BASE_URL}/api/auth/verify`,
     REFRESH: `${BASE_URL}/api/auth/refresh`,
   },
+  COMPANY_INFO: {
+    GET: `${BASE_URL}/api/company-info`,
+    CREATE: `${BASE_URL}/api/company-info`,
+    UPDATE: `${BASE_URL}/api/company-info`,
+    DELETE: `${BASE_URL}/api/company-info`,
+  },
+
 } as const;
