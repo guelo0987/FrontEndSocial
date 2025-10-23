@@ -4,6 +4,7 @@ import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { CreatePostSection } from "@/components/dashboard/CreatePostSection";
 import { InstagramPreview } from "@/components/dashboard/InstagramPreview";
 import { CompanyInfoSection } from "@/components/dashboard/CompanyInfoSection";
+import { PostsSection } from "@/components/dashboard/PostsSection";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const Dashboard = () => {
@@ -32,12 +33,7 @@ const Dashboard = () => {
             )}
             {activeSection === "historial" && (
               <div className="animate-fade-in">
-                <h2 className="text-2xl font-bold mb-6">Historial de Posts</h2>
-                <div className="glass rounded-2xl p-8 text-center">
-                  <p className="text-muted-foreground">
-                    Aquí aparecerán tus posts generados anteriormente
-                  </p>
-                </div>
+                <PostsSection />
               </div>
             )}
             {activeSection === "empresa" && (

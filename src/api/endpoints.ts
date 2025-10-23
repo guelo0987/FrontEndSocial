@@ -16,5 +16,11 @@ export const API_ENDPOINTS = {
     UPDATE: `${BASE_URL}/api/company-info`,
     DELETE: `${BASE_URL}/api/company-info`,
   },
+  POSTS: {
+    GET: `${BASE_URL}/api/posts/`,
+    CREATE: `${BASE_URL}/api/posts`,
+    UPDATE: `${BASE_URL}/api/posts`,
+    DELETE: `${BASE_URL}/api/posts`,
+  },
 
 } as const;
