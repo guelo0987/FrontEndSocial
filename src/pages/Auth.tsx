@@ -133,7 +133,7 @@ const Auth = () => {
             increíble con IA
           </h2>
           <p className="text-xl opacity-90 max-w-md mx-auto">
-            Genera posts profesionales para Instagram en segundos con nuestra
+            Genera posts profesionales para Instdagram en segundos con nuestra
             inteligencia artificial
           </p>
         </div>
