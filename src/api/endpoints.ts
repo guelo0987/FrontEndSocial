@@ -22,8 +22,14 @@ export const API_ENDPOINTS = {
     DELETE: `${BASE_URL}/api/posts/`,
   },
   CATALOG: {
-    OBJECTIVES: `${BASE_URL}/api/catalog/objectives`,
-    STYLES: `${BASE_URL}/api/catalog/styles`,
+    GET_OBJECTIVES: `${BASE_URL}/api/catalog/objectives`,
+    POST_OBJECTIVES: `${BASE_URL}/api/catalog/objectives`,
+    DELETE_OBJECTIVES: `${BASE_URL}/api/catalog/objectives/`,
+    UPDATE_OBJECTIVES: `${BASE_URL}/api/catalog/objectives/`,
+    GET_STYLES: `${BASE_URL}/api/catalog/styles`,
+    POST_STYLES: `${BASE_URL}/api/catalog/styles`,
+    DELETE_STYLES: `${BASE_URL}/api/catalog/styles/`,
+    UPDATE_STYLES: `${BASE_URL}/api/catalog/styles/`,
   },
   TEMPLATES: {
     GET: `${BASE_URL}/api/templates/`,

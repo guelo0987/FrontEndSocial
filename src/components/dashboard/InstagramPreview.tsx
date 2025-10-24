@@ -14,9 +14,11 @@ interface InstagramPreviewProps {
     caption: string;
     hashtags: string[];
   } | null;
+  onRegenerate?: () => void;
+  onSave?: () => void;
 }
 
-export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
+export const InstagramPreview = ({ post, onRegenerate, onSave }: InstagramPreviewProps) => {
   const [companyInfo, setCompanyInfo] = useState<CompanyInfoResponse | null>(null);
 
   // Helper function to build full URL
@@ -102,7 +104,7 @@ export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
           <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
         </div>
 
-        {/* Image with overlay text */}
+        {/* Image without overlay text - cleaner look */}
         <div className="relative aspect-square bg-gradient-to-br from-primary/20 to-secondary/20">
           <img 
             src={buildFullUrl(post.image_url)} 
@@ -113,10 +115,6 @@ export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
               target.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800';
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-6">
-            <h4 className="text-white text-2xl font-bold mb-1">{post.title}</h4>
-            <p className="text-white/90 text-sm">{post.subtitle}</p>
-          </div>
         </div>
 
         {/* Actions */}
@@ -132,14 +130,29 @@ export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
 
           <div className="text-sm font-semibold">1,234 me gusta</div>
 
-          {/* Caption */}
-          <div className="text-sm space-y-1">
+          {/* Caption with title and subtitle */}
+          <div className="text-sm space-y-2">
+            {/* Title and subtitle as separate elements */}
+            {post.title && (
+              <div className="font-bold text-base text-foreground">
+                {post.title}
+              </div>
+            )}
+            {post.subtitle && (
+              <div className="text-muted-foreground text-sm">
+                {post.subtitle}
+              </div>
+            )}
+            
+            {/* Main caption */}
             <p>
               <span className="font-semibold mr-2">
                 {companyInfo?.company_name ? getCompanyUsername(companyInfo.company_name) : 'mi_empresa'}
               </span>
               {post.caption}
             </p>
+            
+            {/* Hashtags */}
             {post.hashtags && post.hashtags.length > 0 && (
               <p className="text-primary">
                 {post.hashtags.join(" ")}
@@ -155,10 +168,20 @@ export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
 
       {/* Action buttons */}
       <div className="mt-4 space-y-2">
-        <Button variant="outline" className="w-full">
+        <Button 
+          variant="outline" 
+          className="w-full"
+          onClick={onRegenerate}
+          disabled={!onRegenerate}
+        >
           🔄 Regenerar
         </Button>
-        <Button variant="outline" className="w-full">
+        <Button 
+          variant="outline" 
+          className="w-full"
+          onClick={onSave}
+          disabled={!onSave}
+        >
           💾 Guardar
         </Button>
       </div>

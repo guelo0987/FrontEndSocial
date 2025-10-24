@@ -18,7 +18,11 @@ export {
 export { 
   catalogService,
   type ObjectivesResponse,
-  type StylesResponse
+  type StylesResponse,
+  type CreateObjectiveRequest,
+  type UpdateObjectiveRequest,
+  type CreateStyleRequest,
+  type UpdateStyleRequest
 } from './catalogService';
 
 // Template Service

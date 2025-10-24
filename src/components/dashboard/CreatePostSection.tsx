@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -17,9 +17,10 @@ interface CreatePostSectionProps {
     caption: string;
     hashtags: string[];
   }) => void;
+  onRegenerateCallback?: (callback: (() => void) | null) => void;
 }
 
-export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) => {
+export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: CreatePostSectionProps) => {
   const [message, setMessage] = useState("");
   const [objectiveId, setObjectiveId] = useState<number | undefined>();
   const [styleId, setStyleId] = useState<number | undefined>();
@@ -34,9 +35,11 @@ export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) =
     content: string;
     imageUrl: string;
     originalMessage: string;
+    postId: number;
   } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasNotifiedCallbackRef = useRef(false);
   const { objectives, styles, isLoading: catalogsLoading } = useCatalogs();
 
   // Handle image selection
@@ -117,7 +120,8 @@ export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) =
         setLastGenerated({
           content,
           imageUrl: image_url,
-          originalMessage: message
+          originalMessage: message,
+          postId: response.data.post_id
         });
 
         // Parse content
@@ -183,7 +187,7 @@ export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) =
   };
 
   // Regenerate content (create variation)
-  const handleRegenerate = async () => {
+  const handleRegenerate = useCallback(async () => {
     if (!lastGenerated) {
       toast.error("No hay contenido previo para regenerar");
       return;
@@ -204,6 +208,7 @@ export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) =
       const request: RegenerateContentRequest = {
         previous_content: lastGenerated.content,
         original_message: lastGenerated.originalMessage,
+        post_id: lastGenerated.postId, // Use post_id for better regeneration
         objective_id: objectiveId,
         style_id: styleId,
         previous_image_path: lastGenerated.imageUrl,
@@ -218,7 +223,8 @@ export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) =
         setLastGenerated({
           content,
           imageUrl: image_url,
-          originalMessage: lastGenerated.originalMessage
+          originalMessage: lastGenerated.originalMessage,
+          postId: response.data.post_id
         });
 
         // Parse content
@@ -264,7 +270,20 @@ export const CreatePostSection = ({ onPostGenerated }: CreatePostSectionProps) =
     } finally {
       setIsRegenerating(false);
     }
-  };
+  }, [lastGenerated, objectiveId, styleId, styles, onPostGenerated]);
+
+  // Pass regenerate function to parent only when lastGenerated changes
+  useEffect(() => {
+    if (onRegenerateCallback) {
+      if (lastGenerated) {
+        onRegenerateCallback(() => handleRegenerate());
+        hasNotifiedCallbackRef.current = true;
+      } else if (hasNotifiedCallbackRef.current) {
+        onRegenerateCallback(null);
+        hasNotifiedCallbackRef.current = false;
+      }
+    }
+  }, [lastGenerated]); // Solo depende de lastGenerated, no de handleRegenerate
 
   return (
     <div className="max-w-4xl mx-auto animate-fade-in">

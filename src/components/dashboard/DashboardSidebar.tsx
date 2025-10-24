@@ -1,4 +1,4 @@
-import { Sparkles, Palette, Building2, Image, Settings, LogOut, History } from "lucide-react";
+import { Sparkles, Palette, Building2, Image, Settings, LogOut, History, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ export const DashboardSidebar = ({ activeSection, setActiveSection }: DashboardS
     { id: "historial", label: "Historial", icon: History },
     { id: "empresa", label: "Info de Empresa", icon: Building2 },
     { id: "plantillas", label: "Plantillas", icon: Image },
+    { id: "catalogos", label: "Catálogos", icon: Target },
     { id: "configuracion", label: "Configuración", icon: Settings },
   ];
 

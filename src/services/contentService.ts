@@ -56,6 +56,7 @@ export interface RegenerateContentRequest {
   // Optional - IDs
   objective_id?: number;
   style_id?: number;
+  post_id?: number; // NEW: ID of the previous post to regenerate
 
   // Optional - Names (alternatives)
   post_objective?: string;
@@ -208,6 +209,7 @@ export const contentService = {
         original_message: request.original_message,
         objective_id: request.objective_id,
         style_id: request.style_id,
+        post_id: request.post_id, // NEW: Include post_id
         post_objective: request.post_objective,
         post_style: request.post_style,
         previous_image_path: request.previous_image_path,
