@@ -1,10 +1,14 @@
+import { useState, useEffect } from "react";
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from "lucide-react";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { companyInfoService } from "@/services/companyInfoService";
+import { ApiResponseHandler } from "@/helpers";
+import type { CompanyInfoResponse } from "@/models";
 
 interface InstagramPreviewProps {
   post: {
-    image: string;
+    image_url: string;
     title: string;
     subtitle: string;
     caption: string;
@@ -13,6 +17,46 @@ interface InstagramPreviewProps {
 }
 
 export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
+  const [companyInfo, setCompanyInfo] = useState<CompanyInfoResponse | null>(null);
+
+  // Helper function to build full URL
+  const buildFullUrl = (path: string) => {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+    return `${baseUrl}${path}`;
+  };
+
+  // Get company initials
+  const getCompanyInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  // Get company username
+  const getCompanyUsername = (name: string) => {
+    return name.toLowerCase().replace(/\s+/g, '_');
+  };
+
+  // Load company info
+  useEffect(() => {
+    const loadCompanyInfo = async () => {
+      try {
+        const response = await companyInfoService.getCompanyInfo();
+        if (ApiResponseHandler.isSuccess(response)) {
+          setCompanyInfo(response.data);
+        }
+      } catch (error) {
+        console.error('Error loading company info:', error);
+      }
+    };
+
+    loadCompanyInfo();
+  }, []);
   if (!post) {
     return (
       <div className="animate-fade-in">
@@ -41,11 +85,19 @@ export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
         <div className="p-4 flex items-center justify-between border-b border-border">
           <div className="flex items-center gap-3">
             <Avatar className="w-8 h-8">
+              {companyInfo?.logo_path && (
+                <AvatarImage 
+                  src={buildFullUrl(companyInfo.logo_path)} 
+                  alt={companyInfo.company_name}
+                />
+              )}
               <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                MI
+                {companyInfo?.company_name ? getCompanyInitials(companyInfo.company_name) : 'MI'}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm font-semibold">mi_empresa</span>
+            <span className="text-sm font-semibold">
+              {companyInfo?.company_name ? getCompanyUsername(companyInfo.company_name) : 'mi_empresa'}
+            </span>
           </div>
           <MoreHorizontal className="w-5 h-5 text-muted-foreground" />
         </div>
@@ -53,9 +105,13 @@ export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
         {/* Image with overlay text */}
         <div className="relative aspect-square bg-gradient-to-br from-primary/20 to-secondary/20">
           <img 
-            src={post.image} 
+            src={buildFullUrl(post.image_url)} 
             alt="Post" 
             className="w-full h-full object-cover"
+            onError={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.src = 'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800';
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-6">
             <h4 className="text-white text-2xl font-bold mb-1">{post.title}</h4>
@@ -79,12 +135,16 @@ export const InstagramPreview = ({ post }: InstagramPreviewProps) => {
           {/* Caption */}
           <div className="text-sm space-y-1">
             <p>
-              <span className="font-semibold mr-2">mi_empresa</span>
+              <span className="font-semibold mr-2">
+                {companyInfo?.company_name ? getCompanyUsername(companyInfo.company_name) : 'mi_empresa'}
+              </span>
               {post.caption}
             </p>
-            <p className="text-primary">
-              {post.hashtags.join(" ")}
-            </p>
+            {post.hashtags && post.hashtags.length > 0 && (
+              <p className="text-primary">
+                {post.hashtags.join(" ")}
+              </p>
+            )}
           </div>
 
           <div className="text-xs text-muted-foreground">

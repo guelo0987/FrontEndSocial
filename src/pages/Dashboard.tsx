@@ -5,12 +5,13 @@ import { CreatePostSection } from "@/components/dashboard/CreatePostSection";
 import { InstagramPreview } from "@/components/dashboard/InstagramPreview";
 import { CompanyInfoSection } from "@/components/dashboard/CompanyInfoSection";
 import { PostsSection } from "@/components/dashboard/PostsSection";
+import { TemplateManager } from "@/components/dashboard/TemplateManager";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const Dashboard = () => {
   const [activeSection, setActiveSection] = useState("crear");
   const [generatedPost, setGeneratedPost] = useState<{
-    image: string;
+    image_url: string;
     title: string;
     subtitle: string;
     caption: string;
@@ -39,6 +40,11 @@ const Dashboard = () => {
             {activeSection === "empresa" && (
               <div className="animate-fade-in">
                 <CompanyInfoSection />
+              </div>
+            )}
+            {activeSection === "plantillas" && (
+              <div className="animate-fade-in">
+                <TemplateManager />
               </div>
             )}
           </main>

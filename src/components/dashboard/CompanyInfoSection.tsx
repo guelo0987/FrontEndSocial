@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Building2, Palette, Globe, Phone, Mail, MapPin, Hash, Save, Loader2, Upload, Image } from 'lucide-react';
+import { Building2, Palette, Phone, Save, Loader2, Upload, Image, X } from 'lucide-react';
 import { companyInfoService } from '@/services/companyInfoService';
 import { useNotifications, ApiResponseHandler } from '@/helpers';
 import type { CompanyInfoResponse, CompanyInfoCreateRequest, CompanyInfoUpdateRequest, BrandColors } from '@/models';
@@ -17,6 +17,10 @@ export const CompanyInfoSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [hasCompanyInfo, setHasCompanyInfo] = useState(false);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form states
   const [formData, setFormData] = useState<CompanyInfoCreateRequest>({
@@ -59,7 +63,7 @@ export const CompanyInfoSection = () => {
       const response = await companyInfoService.getCompanyInfo();
       
       if (ApiResponseHandler.isSuccess(response)) {
-        console.log('Company info loaded:', response.data);
+        
         setCompanyInfo(response.data);
         setHasCompanyInfo(true);
         setFormData({
@@ -118,6 +122,105 @@ export const CompanyInfoSection = () => {
         [colorField]: value
       }
     }));
+  };
+
+  // Handle logo file selection
+  const handleLogoFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/svg+xml'];
+      if (!allowedTypes.includes(file.type)) {
+        error({
+          title: 'Tipo de archivo no válido',
+          description: 'Solo se permiten archivos PNG, JPG, JPEG, GIF, WebP y SVG'
+        });
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        error({
+          title: 'Archivo demasiado grande',
+          description: 'El logo no puede superar los 5MB'
+        });
+        return;
+      }
+      
+      setLogoFile(file);
+      success({
+        title: 'Logo seleccionado',
+        description: 'Archivo listo para subir'
+      });
+    }
+  };
+
+  // Remove selected logo file
+  const handleRemoveLogoFile = () => {
+    setLogoFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Upload logo file
+  const handleUploadLogo = async () => {
+    if (!logoFile) {
+      error({
+        title: 'No hay archivo',
+        description: 'Selecciona un archivo de logo primero'
+      });
+      return;
+    }
+
+    try {
+      setIsUploadingLogo(true);
+      
+      const uploadFormData = new FormData();
+      uploadFormData.append('logo', logoFile);
+      
+      // Add other company info fields
+      Object.entries(formData).forEach(([key, value]) => {
+        if (key !== 'logo' && value !== '') {
+          uploadFormData.append(key, value as string);
+        }
+      });
+
+      let response;
+      if (hasCompanyInfo) {
+        // Update with logo
+        response = await companyInfoService.updateCompanyInfoWithFile(uploadFormData);
+      } else {
+        // Create with logo
+        response = await companyInfoService.createCompanyInfoWithFile(uploadFormData);
+      }
+
+      if (ApiResponseHandler.isSuccess(response)) {
+        setCompanyInfo(response.data);
+        setHasCompanyInfo(true);
+        setLogoFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+        success({
+          title: 'Logo subido exitosamente',
+          description: 'El logo de tu empresa se ha actualizado correctamente'
+        });
+      } else {
+        error({
+          title: 'Error al subir logo',
+          description: response.message
+        });
+      }
+    } catch (err) {
+      console.error('Error uploading logo:', err);
+      error({
+        title: 'Error inesperado',
+        description: 'No se pudo subir el logo'
+      });
+    } finally {
+      setIsUploadingLogo(false);
+    }
   };
 
   const handleSave = async () => {
@@ -251,7 +354,7 @@ export const CompanyInfoSection = () => {
                           src={buildLogoUrl(formData.logo_path)} 
                           alt="Logo de la empresa" 
                           className="w-20 h-20 object-contain"
-                          onLoad={() => console.log('Logo loaded successfully:', formData.logo_path)}
+                        
                           onError={(e) => {
             
                             e.currentTarget.style.display = 'none';
@@ -270,24 +373,105 @@ export const CompanyInfoSection = () => {
                   </div>
                   
                   <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1">
-                        <Input
-                          id="logo_path"
-                          value={formData.logo_path}
-                          onChange={(e) => handleInputChange('logo_path', e.target.value)}
-                          placeholder="https://ejemplo.com/logo.png"
-                          className="h-12"
-                        />
-                      </div>
-                      <Button type="button" variant="outline" className="h-12 px-4">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Subir
-                      </Button>
+                    {/* File upload section */}
+                    <div className="space-y-2">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/gif,image/webp,image/svg+xml"
+                        onChange={handleLogoFileSelect}
+                        className="hidden"
+                        id="logo-upload"
+                      />
+                      
+                      {!logoFile ? (
+                        <label
+                          htmlFor="logo-upload"
+                          className="border-2 border-dashed border-border rounded-lg p-4 text-center hover:border-primary transition-colors cursor-pointer group block"
+                        >
+                          <Upload className="w-6 h-6 mx-auto mb-2 text-muted-foreground group-hover:text-primary transition-colors" />
+                          <p className="text-sm text-muted-foreground">
+                            Haz click para seleccionar un logo
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            PNG, JPG, GIF, WebP, SVG - Máx. 5MB
+                          </p>
+                        </label>
+                      ) : (
+                        <div className="border-2 border-primary rounded-lg p-4 flex items-center justify-between bg-primary/5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Image className="w-5 h-5 text-primary" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium">{logoFile.name}</p>
+                              <p className="text-xs text-muted-foreground">
+                                {(logoFile.size / 1024 / 1024).toFixed(2)} MB
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              onClick={handleUploadLogo}
+                              disabled={isUploadingLogo}
+                              size="sm"
+                              className="h-8"
+                            >
+                              {isUploadingLogo ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <>
+                                  <Upload className="w-4 h-4 mr-1" />
+                                  Subir
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleRemoveLogoFile}
+                              className="h-8 w-8 p-0"
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      Ingresa la URL de tu logo o usa el botón para subir una imagen
-                    </p>
+
+                    {/* URL input section */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <Input
+                            id="logo_path"
+                            value={formData.logo_path}
+                            onChange={(e) => handleInputChange('logo_path', e.target.value)}
+                            placeholder="https://ejemplo.com/logo.png"
+                            className="h-10"
+                          />
+                        </div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-10 px-4"
+                          onClick={() => handleSave()}
+                          disabled={isSaving}
+                        >
+                          {isSaving ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Save className="w-4 h-4" />
+                          )}
+                        </Button>
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        O ingresa la URL de tu logo directamente
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>

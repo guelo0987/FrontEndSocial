@@ -25,5 +25,16 @@ export const API_ENDPOINTS = {
     OBJECTIVES: `${BASE_URL}/api/catalog/objectives`,
     STYLES: `${BASE_URL}/api/catalog/styles`,
   },
+  TEMPLATES: {
+    GET: `${BASE_URL}/api/templates/`,
+    CREATE: `${BASE_URL}/api/templates`,
+    GET_BY_ID: `${BASE_URL}/api/templates`,
+    UPDATE: `${BASE_URL}/api/templates`,
+    DELETE: `${BASE_URL}/api/templates`,
+  },
+  CONTENT: {
+    GENERATE: `${BASE_URL}/api/generate-content`,
+    REGENERATE: `${BASE_URL}/api/regenerate-content`,
+  },
 
 } as const;
