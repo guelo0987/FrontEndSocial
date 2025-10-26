@@ -89,7 +89,7 @@ class TemplateService {
     formData.append('file', file);
 
     const response: AxiosResponse<{ storage_path: string }> = 
-      await this.axiosInstance.post(`${API_ENDPOINTS.TEMPLATES.CREATE}/upload`, formData, {
+      await this.axiosInstance.post(`${API_ENDPOINTS.TEMPLATES.CREATE}/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
