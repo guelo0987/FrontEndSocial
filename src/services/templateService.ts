@@ -51,27 +51,27 @@ class TemplateService {
    * Obtener un template específico por ID
    */
   async getTemplateById(id: number): Promise<ImageTemplateResponse> {
-    const response: AxiosResponse<ImageTemplateResponse> = 
+    const response: AxiosResponse<{data: ImageTemplateResponse, success: boolean}> = 
       await this.axiosInstance.get(`${API_ENDPOINTS.TEMPLATES.GET_BY_ID}${id}`);
-    return response.data;
+    return response.data.data;
   }
 
   /**
    * Crear un nuevo template
    */
   async createTemplate(templateData: ImageTemplateCreateRequest): Promise<ImageTemplateResponse> {
-    const response: AxiosResponse<ImageTemplateResponse> = 
+    const response: AxiosResponse<{data: ImageTemplateResponse, success: boolean}> = 
       await this.axiosInstance.post(API_ENDPOINTS.TEMPLATES.CREATE, templateData);
-    return response.data;
+    return response.data.data;
   }
 
   /**
    * Actualizar un template existente
    */
   async updateTemplate(id: number, templateData: ImageTemplateUpdateRequest): Promise<ImageTemplateResponse> {
-    const response: AxiosResponse<ImageTemplateResponse> = 
-      await this.axiosInstance.put(`${API_ENDPOINTS.TEMPLATES.UPDATE}/${id}`, templateData);
-    return response.data;
+    const response: AxiosResponse<{data: ImageTemplateResponse, success: boolean}> = 
+      await this.axiosInstance.put(`${API_ENDPOINTS.TEMPLATES.UPDATE}${id}`, templateData);
+    return response.data.data;
   }
 
   /**
@@ -82,20 +82,26 @@ class TemplateService {
   }
 
   /**
-   * Subir archivo de template
+   * Crear template con archivo y nombre
    */
-  async uploadTemplateFile(file: File): Promise<{ storage_path: string }> {
+  async createTemplateWithFile(file: File, templateName: string): Promise<ImageTemplateResponse> {
     const formData = new FormData();
     formData.append('file', file);
+    formData.append('template_name', templateName);
 
-    const response: AxiosResponse<{ storage_path: string }> = 
-      await this.axiosInstance.post(`${API_ENDPOINTS.TEMPLATES.CREATE}/`, formData, {
+    // Usar axios directamente sin la instancia para evitar el header global application/json
+    const token = localStorage.getItem('token');
+    const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001';
+    
+    const response: AxiosResponse<{data: ImageTemplateResponse, success: boolean}> = 
+      await axios.post(`${baseURL}/api/templates/`, formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
+          // No establecer Content-Type para que el navegador lo haga con el boundary correcto
         },
       });
 
-    return response.data;
+    return response.data.data;
   }
 
   /**

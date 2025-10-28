@@ -203,9 +203,10 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
     }
 
     setIsRegenerating(true);
+    toast.loading("Regenerando imagen y contenido...", { id: "regenerating" });
 
     // Add user request to conversation
-    const userMessage = { role: "user" as const, content: "Genera una nueva versión" };
+    const userMessage = { role: "user" as const, content: "Regenera una nueva versión del post" };
     setConversation(prev => [...prev, userMessage]);
 
     try {
@@ -223,6 +224,9 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
       if (ApiResponseHandler.isSuccess(response)) {
         const { content, image_url } = response.data;
         
+        // Dismiss loading toast
+        toast.dismiss("regenerating");
+        
         // Update stored content
         setLastGenerated({
           content,
@@ -236,11 +240,14 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
         
         // Get style name
         const styleName = styles.find(s => s.id === styleId)?.name || 'moderno';
+        
+        // Get objective name
+        const objectiveName = objectives.find(obj => obj.id === objectiveId)?.name || '';
 
-        // Add assistant message
+        // Add assistant message with regeneration details
         const assistantMessage = {
           role: "assistant" as const,
-          content: `Aquí está una nueva versión:\n\n${parsed.bodyText}\n\n${parsed.cta}\n\n${parsed.hashtags.join(' ')}`
+          content: `✨ ¡Post regenerado exitosamente!\n\n📊 Datos de regeneración:\n• Objetivo: ${objectiveName}\n• Estilo: ${styleName}\n• Imagen: Nueva imagen generada\n\n📝 Contenido:\n\n${parsed.bodyText}\n\n${parsed.cta}\n\n${parsed.hashtags.join(' ')}`
         };
         setConversation(prev => [...prev, assistantMessage]);
 
@@ -254,27 +261,34 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
         };
 
         onPostGenerated(generatedPost);
-        toast.success("¡Nueva variación generada!");
+        toast.success("¡Nueva variación generada exitosamente!");
       } else {
+        // Dismiss loading toast
+        toast.dismiss("regenerating");
+        
         const errorMessage = {
           role: "assistant" as const,
-          content: `Lo siento, hubo un error: ${response.message}`
+          content: `❌ Error al regenerar:\n\n${response.message}`
         };
         setConversation(prev => [...prev, errorMessage]);
         toast.error(response.message);
       }
     } catch (error) {
       console.error('Error regenerating content:', error);
+      
+      // Dismiss loading toast
+      toast.dismiss("regenerating");
+      
       const errorMessage = {
         role: "assistant" as const,
-        content: 'Ocurrió un error al regenerar el contenido. Por favor, intenta nuevamente.'
+        content: '❌ Ocurrió un error al regenerar el contenido. Por favor, intenta nuevamente.'
       };
       setConversation(prev => [...prev, errorMessage]);
       toast.error('Error inesperado al regenerar contenido');
     } finally {
       setIsRegenerating(false);
     }
-  }, [lastGenerated, objectiveId, styleId, styles, onPostGenerated]);
+  }, [lastGenerated, objectiveId, styleId, styles, objectives, onPostGenerated]);
 
   // Pass regenerate function to parent only when lastGenerated changes
   useEffect(() => {

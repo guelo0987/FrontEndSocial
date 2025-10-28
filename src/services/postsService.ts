@@ -178,5 +178,49 @@ export const postsService = {
       
       return ApiResponseHandler.handleHttpError(error);
     }
+  },
+
+  // Get variations of a post
+  getPostVariations: async (postId: number): Promise<ApiResponse<{
+    original_post: GeneratedPostResponse;
+    variations: GeneratedPostResponse[];
+    total_variations: number;
+  }>> => {
+    try {
+      const response = await axios.get(`${API_ENDPOINTS.POSTS.GET_VARIATIONS}${postId}/variations`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (response.data && response.data.success && response.data.data) {
+        return ApiResponseHandler.success(
+          {
+            original_post: response.data.original_post,
+            variations: response.data.variations,
+            total_variations: response.data.total_variations
+          },
+          'Variaciones obtenidas exitosamente'
+        );
+      }
+      
+      return ApiResponseHandler.error(
+        'INVALID_RESPONSE',
+        'Respuesta inválida del servidor',
+        'El servidor no devolvió las variaciones válidas'
+      );
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        return ApiResponseHandler.error(
+          'NOT_FOUND',
+          'Post no encontrado',
+          'El post solicitado no existe o no tiene variaciones'
+        );
+      }
+      
+      if (error.response?.status === 401) {
+        return CommonApiResponses.auth.sessionExpired();
+      }
+      
+      return ApiResponseHandler.handleHttpError(error);
+    }
   }
 };

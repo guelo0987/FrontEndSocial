@@ -23,8 +23,10 @@ export interface GeneratedPost {
   content?: string;
   objective_id: number;
   objective?: string;  // Nombre del objetivo (viene del JOIN)
+  objective_description?: string;  // Descripción del objetivo
   style_id: number;
   style?: string;      // Nombre del estilo (viene del JOIN)
+  style_description?: string;  // Descripción del estilo
   image_url?: string;
   template_id?: number;
   status: PostStatus;
@@ -32,6 +34,11 @@ export interface GeneratedPost {
   scheduled_for?: string;
   published_at?: string;
   post_url?: string;
+  // Campos para variaciones
+  is_variation?: boolean;  // Indica si es una variación de otro post
+  parent_post_id?: number;  // ID del post original
+  generation_type?: string;  // 'template_with_image', 'template_only', 'user_image', 'from_scratch'
+  main_image_path?: string;  // Ruta de la imagen del usuario (si aplica)
   created_at: string;
   updated_at: string;
 }
@@ -78,8 +85,10 @@ export interface GeneratedPostResponse {
   content?: string;
   objective_id: number;
   objective?: string;  // Nombre del objetivo
+  objective_description?: string;  // Descripción del objetivo
   style_id: number;
   style?: string;      // Nombre del estilo
+  style_description?: string;  // Descripción del estilo
   image_url?: string;
   template_id?: number;
   status: PostStatus;
@@ -87,6 +96,11 @@ export interface GeneratedPostResponse {
   scheduled_for?: string;
   published_at?: string;
   post_url?: string;
+  // Campos para variaciones
+  is_variation?: boolean;  // Indica si es una variación de otro post
+  parent_post_id?: number;  // ID del post original
+  generation_type?: string;  // 'template_with_image', 'template_only', 'user_image', 'from_scratch'
+  main_image_path?: string;  // Ruta de la imagen del usuario (si aplica)
   created_at: string;
   updated_at: string;
 }

@@ -11,6 +11,12 @@ export interface CompanyInfo {
   logo_path?: string;
   brand_colors?: BrandColors;
   template_style?: string;
+  // Nuevos campos de contexto de negocio
+  business_type?: string;  // 'retail', 'personal_brand', 'service', 'education', 'beauty', etc.
+  photography_style?: string;  // 'professional_portrait', 'lifestyle', 'product_only', 'editorial', 'commercial'
+  brand_personality?: string;  // Descripción de la personalidad de marca (elegante, juvenil, profesional, etc.)
+  target_audience_details?: string;  // Descripción detallada del público objetivo
+  visual_references?: string[];  // Referencias visuales o keywords de estilo
   created_at: string;
   updated_at: string;
 }
@@ -34,6 +40,12 @@ export interface CompanyInfoCreateRequest {
   logo_path?: string;
   brand_colors?: BrandColors;
   template_style?: string;
+  // Nuevos campos de contexto de negocio
+  business_type?: string;
+  photography_style?: string;
+  brand_personality?: string;
+  target_audience_details?: string;
+  visual_references?: string[];
 }
 
 export interface CompanyInfoUpdateRequest {
@@ -47,6 +59,12 @@ export interface CompanyInfoUpdateRequest {
   logo_path?: string;
   brand_colors?: BrandColors;
   template_style?: string;
+  // Nuevos campos de contexto de negocio
+  business_type?: string;
+  photography_style?: string;
+  brand_personality?: string;
+  target_audience_details?: string;
+  visual_references?: string[];
 }
 
 export interface CompanyInfoResponse {
@@ -62,6 +80,12 @@ export interface CompanyInfoResponse {
   logo_path?: string;
   brand_colors?: BrandColors;
   template_style?: string;
+  // Nuevos campos de contexto de negocio
+  business_type?: string;
+  photography_style?: string;
+  brand_personality?: string;
+  target_audience_details?: string;
+  visual_references?: string[];
   created_at: string;
   updated_at: string;
 }

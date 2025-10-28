@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
     GET: `${BASE_URL}/api/posts/`,
     GET_BY_ID: `${BASE_URL}/api/posts/`,
     DELETE: `${BASE_URL}/api/posts/`,
+    GET_VARIATIONS: `${BASE_URL}/api/posts/`, // Append /{post_id}/variations
   },
   CATALOG: {
     GET_OBJECTIVES: `${BASE_URL}/api/catalog/objectives`,
@@ -33,14 +34,18 @@ export const API_ENDPOINTS = {
   },
   TEMPLATES: {
     GET: `${BASE_URL}/api/templates/`,
-    CREATE: `${BASE_URL}/api/templates`,
-    GET_BY_ID: `${BASE_URL}/api/templates`,
-    UPDATE: `${BASE_URL}/api/templates`,
-    DELETE: `${BASE_URL}/api/templates`,
+    CREATE: `${BASE_URL}/api/templates/`,
+    GET_BY_ID: `${BASE_URL}/api/templates/`,
+    UPDATE: `${BASE_URL}/api/templates/`,
+    DELETE: `${BASE_URL}/api/templates/`,
   },
   CONTENT: {
     GENERATE: `${BASE_URL}/api/generate-content`,
     REGENERATE: `${BASE_URL}/api/regenerate-content`,
+  },
+  AUTO_CONTEXT: {
+    GENERATE: `${BASE_URL}/api/auto-context/generate`,
+    VIEW: `${BASE_URL}/api/auto-context/view`,
   },
 
 } as const;

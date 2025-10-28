@@ -7,8 +7,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Building2, Palette, Phone, Save, Loader2, Upload, Image, X } from 'lucide-react';
+import { Building2, Palette, Phone, Save, Loader2, Upload, Image, X, Sparkles, RefreshCw } from 'lucide-react';
 import { companyInfoService } from '@/services/companyInfoService';
+import { autoContextService } from '@/services/autoContextService';
 import { useNotifications, ApiResponseHandler } from '@/helpers';
 import type { CompanyInfoResponse, CompanyInfoCreateRequest, CompanyInfoUpdateRequest, BrandColors } from '@/models';
 
@@ -19,6 +20,8 @@ export const CompanyInfoSection = () => {
   const [hasCompanyInfo, setHasCompanyInfo] = useState(false);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isGeneratingContext, setIsGeneratingContext] = useState(false);
+  const [hasAutoContext, setHasAutoContext] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -39,7 +42,13 @@ export const CompanyInfoSection = () => {
       accent: '#f59e0b',
       background: '#ffffff',
       text: '#1f2937'
-    }
+    },
+    // Nuevos campos de contexto de negocio
+    business_type: '',
+    photography_style: '',
+    brand_personality: '',
+    target_audience_details: '',
+    visual_references: []
   });
 
   const { success, error, info } = useNotifications();
@@ -82,7 +91,13 @@ export const CompanyInfoSection = () => {
             accent: '#f59e0b',
             background: '#ffffff',
             text: '#1f2937'
-          }
+          },
+          // Nuevos campos de contexto de negocio
+          business_type: response.data.business_type || '',
+          photography_style: response.data.photography_style || '',
+          brand_personality: response.data.brand_personality || '',
+          target_audience_details: response.data.target_audience_details || '',
+          visual_references: response.data.visual_references || []
         });
       } else if (ApiResponseHandler.isError(response) && response.error.code === 'NOT_FOUND') {
         setHasCompanyInfo(false);
@@ -122,6 +137,64 @@ export const CompanyInfoSection = () => {
         [colorField]: value
       }
     }));
+  };
+
+  // Generate context automatically with AI
+  const handleGenerateContext = async (forceRegenerate: boolean = false) => {
+    if (!hasCompanyInfo) {
+      error({
+        title: 'Información incompleta',
+        description: 'Primero debes guardar la información básica de tu empresa (nombre y descripción)'
+      });
+      return;
+    }
+
+    try {
+      setIsGeneratingContext(true);
+      
+      const response = await autoContextService.generateContext(forceRegenerate);
+      
+      if (ApiResponseHandler.isSuccess(response)) {
+        const { context, was_generated } = response.data;
+        
+        // Update form with generated context
+        setFormData(prev => ({
+          ...prev,
+          business_type: context.business_type,
+          photography_style: context.photography_style,
+          brand_personality: context.brand_personality,
+          target_audience_details: context.target_audience_details,
+          visual_references: context.visual_references
+        }));
+        
+        setHasAutoContext(true);
+        
+        if (was_generated) {
+          success({
+            title: '¡Contexto generado con IA! ✨',
+            description: 'Se ha generado automáticamente el contexto de tu negocio. Revísalo y guarda los cambios.'
+          });
+        } else {
+          success({
+            title: 'Contexto cargado',
+            description: 'Se ha cargado el contexto existente'
+          });
+        }
+      } else {
+        error({
+          title: 'Error al generar contexto',
+          description: response.message
+        });
+      }
+    } catch (err) {
+      console.error('Error generating context:', err);
+      error({
+        title: 'Error inesperado',
+        description: 'No se pudo generar el contexto con IA'
+      });
+    } finally {
+      setIsGeneratingContext(false);
+    }
   };
 
   // Handle logo file selection
@@ -302,10 +375,11 @@ export const CompanyInfoSection = () => {
       </div>
 
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="basic">Información Básica</TabsTrigger>
           <TabsTrigger value="contact">Contacto</TabsTrigger>
           <TabsTrigger value="branding">Branding</TabsTrigger>
+          <TabsTrigger value="ai-context">Contexto IA</TabsTrigger>
         </TabsList>
 
         <TabsContent value="basic" className="space-y-6">
@@ -672,6 +746,158 @@ export const CompanyInfoSection = () => {
                     </span>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="ai-context" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5" />
+                    Contexto para IA
+                  </CardTitle>
+                  <CardDescription>
+                    Información adicional para mejorar la generación de contenido con IA
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={() => handleGenerateContext(false)}
+                    disabled={isGeneratingContext || !hasCompanyInfo}
+                    variant="default"
+                    size="sm"
+                  >
+                    {isGeneratingContext ? (
+                      <>
+                        <Loader2 className="mr-2 w-4 h-4 animate-spin" />
+                        Generando...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="mr-2 w-4 h-4" />
+                        Generar con IA
+                      </>
+                    )}
+                  </Button>
+                  {hasAutoContext && (
+                    <Button
+                      onClick={() => handleGenerateContext(true)}
+                      disabled={isGeneratingContext || !hasCompanyInfo}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <RefreshCw className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="business_type">Tipo de Negocio</Label>
+                <select
+                  id="business_type"
+                  value={formData.business_type}
+                  onChange={(e) => handleInputChange('business_type', e.target.value)}
+                  className="w-full h-12 px-3 py-2 border border-input bg-background rounded-md"
+                >
+                  <option value="">Selecciona un tipo</option>
+                  <option value="retail">Retail / Comercio</option>
+                  <option value="personal_brand">Marca Personal</option>
+                  <option value="service">Servicios Profesionales</option>
+                  <option value="education">Educación</option>
+                  <option value="beauty">Belleza y Cuidado Personal</option>
+                  <option value="restaurant">Restaurante / Comida</option>
+                  <option value="technology">Tecnología</option>
+                  <option value="health">Salud y Bienestar</option>
+                  <option value="real_estate">Bienes Raíces</option>
+                  <option value="other">Otro</option>
+                </select>
+                <p className="text-sm text-muted-foreground">
+                  Ayuda a la IA a entender el contexto de tu negocio
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="photography_style">Estilo Fotográfico Preferido</Label>
+                <select
+                  id="photography_style"
+                  value={formData.photography_style}
+                  onChange={(e) => handleInputChange('photography_style', e.target.value)}
+                  className="w-full h-12 px-3 py-2 border border-input bg-background rounded-md"
+                >
+                  <option value="">Selecciona un estilo</option>
+                  <option value="professional_portrait">Retrato Profesional</option>
+                  <option value="lifestyle">Lifestyle / Estilo de Vida</option>
+                  <option value="product_only">Solo Producto</option>
+                  <option value="editorial">Editorial</option>
+                  <option value="commercial">Comercial</option>
+                  <option value="documentary">Documental</option>
+                  <option value="artistic">Artístico</option>
+                </select>
+                <p className="text-sm text-muted-foreground">
+                  Define el estilo visual de las imágenes generadas
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="brand_personality">Personalidad de Marca</Label>
+                <Textarea
+                  id="brand_personality"
+                  value={formData.brand_personality}
+                  onChange={(e) => handleInputChange('brand_personality', e.target.value)}
+                  placeholder="Ej: Elegante, juvenil, profesional, audaz, amigable, innovador..."
+                  className="min-h-[100px]"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Describe la personalidad y tono de tu marca
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="target_audience_details">Público Objetivo</Label>
+                <Textarea
+                  id="target_audience_details"
+                  value={formData.target_audience_details}
+                  onChange={(e) => handleInputChange('target_audience_details', e.target.value)}
+                  placeholder="Ej: Profesionales entre 25-40 años, interesados en tecnología y productividad..."
+                  className="min-h-[100px]"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Describe detalladamente a tu audiencia objetivo
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="visual_references">Referencias Visuales</Label>
+                <Textarea
+                  id="visual_references"
+                  value={Array.isArray(formData.visual_references) ? formData.visual_references.join(', ') : ''}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const references = value.split(',').map(ref => ref.trim()).filter(ref => ref !== '');
+                    setFormData(prev => ({
+                      ...prev,
+                      visual_references: references
+                    }));
+                  }}
+                  placeholder="Ej: minimalista, colores pastel, fotografía natural, diseño flat..."
+                  className="min-h-[80px]"
+                />
+                <p className="text-sm text-muted-foreground">
+                  Keywords o referencias de estilo visual (separadas por comas)
+                </p>
+              </div>
+
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
+                <p className="text-sm text-blue-900 dark:text-blue-100">
+                  💡 <strong>Tip:</strong> Estos campos ayudan a la IA a generar contenido más personalizado y alineado con la identidad de tu marca. 
+                  Cuanto más detallada sea la información, mejores serán los resultados.
+                </p>
               </div>
             </CardContent>
           </Card>

@@ -143,15 +143,11 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onTemplateSele
         setUploadProgress(prev => Math.min(prev + 10, 90));
       }, 200);
 
-      const uploadResult = await templateService.uploadTemplateFile(templateFile);
+      // Create template with file and name
+      const newTemplate = await templateService.createTemplateWithFile(templateFile, templateName);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
-
-      const newTemplate = await templateService.createTemplate({
-        template_name: templateName,
-        storage_path: uploadResult.storage_path,
-      });
 
       setTemplates(prev => [newTemplate, ...prev]);
       setIsCreateDialogOpen(false);
@@ -162,9 +158,11 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onTemplateSele
         description: "Template creado correctamente",
       });
     } catch (error) {
+      console.error('Error creating template:', error);
+      const errorMessage = error instanceof Error ? error.message : 'No se pudo crear el template';
       toast({
         title: "Error",
-        description: "No se pudo crear el template",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -216,36 +214,17 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onTemplateSele
       setIsUploading(true);
       setUploadProgress(0);
 
-      let storagePath = selectedTemplate.storage_path;
-      
-      // Si hay un nuevo archivo, subirlo
-      if (templateFile) {
-        const progressInterval = setInterval(() => {
-          setUploadProgress(prev => Math.min(prev + 10, 90));
-        }, 200);
-
-        try {
-          const uploadResult = await templateService.uploadTemplateFile(templateFile);
-          storagePath = uploadResult.storage_path;
-        } catch (uploadError) {
-          clearInterval(progressInterval);
-          toast({
-            title: "Error",
-            description: "No se pudo subir el archivo",
-            variant: "destructive",
-          });
-          return;
-        }
-        
-        clearInterval(progressInterval);
-        setUploadProgress(100);
-      }
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => Math.min(prev + 15, 90));
+      }, 200);
 
       // Actualizar el template
       const updatedTemplate = await templateService.updateTemplate(selectedTemplate.id, {
         template_name: templateName,
-        storage_path: storagePath,
       });
+
+      clearInterval(progressInterval);
+      setUploadProgress(100);
 
       // Actualizar el estado local con el template actualizado
       setTemplates(prev => {
@@ -253,9 +232,7 @@ export const TemplateManager: React.FC<TemplateManagerProps> = ({ onTemplateSele
           if (t.id === selectedTemplate.id) {
             return {
               ...t,
-              template_name: updatedTemplate.template_name || templateName,
-              storage_path: updatedTemplate.storage_path || storagePath,
-              // Mantener otros campos como created_at
+              ...updatedTemplate,
             };
           }
           return t;

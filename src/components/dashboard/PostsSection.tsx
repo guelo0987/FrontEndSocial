@@ -15,7 +15,9 @@ import {
   Filter,
   RefreshCw,
   Trash2,
-  X
+  X,
+  GitBranch,
+  Loader2
 } from 'lucide-react';
 import { postsService } from '@/services/postsService';
 import { useNotifications, ApiResponseHandler } from '@/helpers';
@@ -36,6 +38,9 @@ export const PostsSection = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedPost, setSelectedPost] = useState<GeneratedPostResponse | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [showVariationsDialog, setShowVariationsDialog] = useState(false);
+  const [variations, setVariations] = useState<GeneratedPostResponse[]>([]);
+  const [isLoadingVariations, setIsLoadingVariations] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     status: 'all',
@@ -164,6 +169,38 @@ export const PostsSection = () => {
         title: 'Error inesperado',
         description: 'No se pudo cargar el post'
       });
+    }
+  };
+
+  const handleViewVariations = async (postId: number) => {
+    try {
+      setIsLoadingVariations(true);
+      const response = await postsService.getPostVariations(postId);
+      
+      if (ApiResponseHandler.isSuccess(response)) {
+        setVariations(response.data.variations);
+        setSelectedPost(response.data.original_post);
+        setShowVariationsDialog(true);
+        
+        if (response.data.variations.length === 0) {
+          error({
+            title: 'Sin variaciones',
+            description: 'Este post no tiene variaciones aún'
+          });
+        }
+      } else {
+        error({
+          title: 'Error',
+          description: response.message
+        });
+      }
+    } catch (err) {
+      error({
+        title: 'Error',
+        description: 'No se pudieron cargar las variaciones'
+      });
+    } finally {
+      setIsLoadingVariations(false);
     }
   };
 
@@ -399,8 +436,22 @@ export const PostsSection = () => {
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleViewPost(post.id)}
+                        title="Ver post"
                       >
                         <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewVariations(post.id)}
+                        disabled={isLoadingVariations}
+                        title="Ver variaciones"
+                      >
+                        {isLoadingVariations ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <GitBranch className="w-4 h-4 text-purple-500" />
+                        )}
                       </Button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -486,6 +537,20 @@ export const PostsSection = () => {
                     <Badge variant="secondary" className={getStatusColor(post.status)}>
                       {getStatusText(post.status)}
                     </Badge>
+                    {post.is_variation && (
+                      <Badge variant="default" className="bg-purple-500">
+                        Variación
+                      </Badge>
+                    )}
+                    {post.generation_type && (
+                      <Badge variant="outline" className="text-xs">
+                        {post.generation_type === 'template_with_image' ? '📄+🖼️ Template+Imagen' :
+                         post.generation_type === 'template_only' ? '📄 Solo Template' :
+                         post.generation_type === 'user_image' ? '🖼️ Imagen Usuario' :
+                         post.generation_type === 'from_scratch' ? '✨ Desde Cero' : 
+                         post.generation_type}
+                      </Badge>
+                    )}
                     {post.style && (
                       <Badge variant="outline">
                         {post.style}
@@ -661,6 +726,102 @@ export const PostsSection = () => {
                     </div>
                   )}
                 </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Variations Dialog */}
+      <Dialog open={showVariationsDialog} onOpenChange={setShowVariationsDialog}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <GitBranch className="w-5 h-5 text-purple-500" />
+              Variaciones del Post
+            </DialogTitle>
+          </DialogHeader>
+          
+          {selectedPost && (
+            <div className="space-y-6">
+              {/* Original Post */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Post Original</h3>
+                <Card className="overflow-hidden">
+                  <div className="relative">
+                    {selectedPost.image_url && (
+                      <img 
+                        src={selectedPost.image_url.startsWith('http') ? selectedPost.image_url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001'}${selectedPost.image_url}`}
+                        alt="Post original"
+                        className="w-full h-48 object-cover"
+                      />
+                    )}
+                  </div>
+                  <CardContent className="p-4">
+                    <div className="space-y-2">
+                      {selectedPost.title && <p className="font-semibold">{selectedPost.title}</p>}
+                      {selectedPost.subtitle && <p className="text-sm text-muted-foreground">{selectedPost.subtitle}</p>}
+                      <p className="text-sm line-clamp-3">{selectedPost.content}</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        <Badge variant="secondary">{selectedPost.status}</Badge>
+                        {selectedPost.style && <Badge variant="outline">{selectedPost.style}</Badge>}
+                        {selectedPost.objective && <Badge variant="outline">{selectedPost.objective}</Badge>}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Variations */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">
+                  Variaciones ({variations.length})
+                </h3>
+                {variations.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <GitBranch className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>Este post no tiene variaciones aún</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {variations.map((variation) => (
+                      <Card key={variation.id} className="overflow-hidden">
+                        <div className="relative">
+                          {variation.image_url && (
+                            <img 
+                              src={variation.image_url.startsWith('http') ? variation.image_url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001'}${variation.image_url}`}
+                              alt="Variación"
+                              className="w-full h-48 object-cover"
+                            />
+                          )}
+                        </div>
+                        <CardContent className="p-4">
+                          <div className="space-y-2">
+                            {variation.title && <p className="font-semibold text-sm">{variation.title}</p>}
+                            {variation.subtitle && <p className="text-xs text-muted-foreground">{variation.subtitle}</p>}
+                            <p className="text-sm line-clamp-3">{variation.content}</p>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              <Badge variant="default" className="bg-purple-500">Variación</Badge>
+                              {variation.generation_type && (
+                                <Badge variant="outline" className="text-xs">
+                                  {variation.generation_type === 'template_with_image' ? '📄+🖼️' :
+                                   variation.generation_type === 'template_only' ? '📄' :
+                                   variation.generation_type === 'user_image' ? '🖼️' :
+                                   variation.generation_type === 'from_scratch' ? '✨' : 
+                                   variation.generation_type}
+                                </Badge>
+                              )}
+                              {variation.style && <Badge variant="outline" className="text-xs">{variation.style}</Badge>}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Creado: {formatDate(variation.created_at)}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}
