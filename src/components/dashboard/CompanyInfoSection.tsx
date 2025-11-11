@@ -758,10 +758,10 @@ export const CompanyInfoSection = () => {
                 <div>
                   <CardTitle className="flex items-center gap-2">
                     <Building2 className="w-5 h-5" />
-                    Contexto para IA
+                    Contexto para IA - Sistema Inteligente
                   </CardTitle>
                   <CardDescription>
-                    Información adicional para mejorar la generación de contenido con IA
+                    Este contexto alimenta el sistema de análisis inteligente que genera posts personalizados
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
@@ -797,8 +797,32 @@ export const CompanyInfoSection = () => {
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Alerta informativa mejorada */}
+              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border-2 border-blue-200 dark:border-blue-900">
+                <div className="flex gap-3">
+                  <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2 text-sm">
+                    <p className="font-semibold text-blue-900 dark:text-blue-100">
+                      💡 Cómo funciona el sistema inteligente:
+                    </p>
+                    <ul className="space-y-1 text-blue-800 dark:text-blue-200 list-disc list-inside">
+                      <li><strong>Analiza tu mensaje:</strong> "Horario 8am-1pm" → Detecta intención informativa</li>
+                      <li><strong>Interpreta el estilo:</strong> "Minimalista" → Aplica reglas concretas (fondo sólido, tipografía grande)</li>
+                      <li><strong>Usa tu paleta:</strong> Extrae colores y los aplica específicamente</li>
+                      <li><strong>Considera tu negocio:</strong> Ferreterías usan productos, marcas personales usan retratos</li>
+                    </ul>
+                    <p className="text-blue-900 dark:text-blue-100 font-medium mt-3">
+                      ✨ Resultado: Posts que realmente reflejan tu marca y mensaje
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="business_type">Tipo de Negocio</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="business_type">Tipo de Negocio</Label>
+                  <span className="text-xs text-muted-foreground">(Afecta si usa productos o personas en imágenes)</span>
+                </div>
                 <select
                   id="business_type"
                   value={formData.business_type}
@@ -806,24 +830,27 @@ export const CompanyInfoSection = () => {
                   className="w-full h-12 px-3 py-2 border border-input bg-background rounded-md"
                 >
                   <option value="">Selecciona un tipo</option>
-                  <option value="retail">Retail / Comercio</option>
-                  <option value="personal_brand">Marca Personal</option>
-                  <option value="service">Servicios Profesionales</option>
-                  <option value="education">Educación</option>
-                  <option value="beauty">Belleza y Cuidado Personal</option>
-                  <option value="restaurant">Restaurante / Comida</option>
-                  <option value="technology">Tecnología</option>
-                  <option value="health">Salud y Bienestar</option>
-                  <option value="real_estate">Bienes Raíces</option>
-                  <option value="other">Otro</option>
+                  <option value="retail">🏪 Retail / Comercio (Productos físicos)</option>
+                  <option value="personal_brand">👤 Marca Personal (Influencer, Coach, Modelo)</option>
+                  <option value="service">💼 Servicios Profesionales (Consultoría, Legal)</option>
+                  <option value="education">📚 Educación (Cursos, Academia)</option>
+                  <option value="beauty">💅 Belleza y Cuidado Personal (Salón, Spa)</option>
+                  <option value="food">🍔 Restaurante / Comida</option>
+                  <option value="technology">💻 Tecnología (Software, Tech)</option>
+                  <option value="healthcare">⚕️ Salud y Bienestar (Médicos, Fitness)</option>
+                  <option value="construction">🏗️ Construcción / Arquitectura</option>
+                  <option value="other">❓ Otro</option>
                 </select>
                 <p className="text-sm text-muted-foreground">
-                  Ayuda a la IA a entender el contexto de tu negocio
+                  <strong>Retail:</strong> Generará imágenes de productos. <strong>Personal Brand:</strong> Generará retratos profesionales.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="photography_style">Estilo Fotográfico Preferido</Label>
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="photography_style">Estilo Fotográfico Preferido</Label>
+                  <span className="text-xs text-muted-foreground">(Define el tipo de imágenes generadas)</span>
+                </div>
                 <select
                   id="photography_style"
                   value={formData.photography_style}
@@ -831,17 +858,18 @@ export const CompanyInfoSection = () => {
                   className="w-full h-12 px-3 py-2 border border-input bg-background rounded-md"
                 >
                   <option value="">Selecciona un estilo</option>
-                  <option value="professional_portrait">Retrato Profesional</option>
-                  <option value="lifestyle">Lifestyle / Estilo de Vida</option>
-                  <option value="product_only">Solo Producto</option>
-                  <option value="editorial">Editorial</option>
-                  <option value="commercial">Comercial</option>
-                  <option value="documentary">Documental</option>
-                  <option value="artistic">Artístico</option>
+                  <option value="professional_portrait">📸 Retrato Profesional (Personas en estudio)</option>
+                  <option value="lifestyle">🌟 Lifestyle (Personas usando productos/servicios)</option>
+                  <option value="product_only">📦 Solo Producto (Sin personas, fondo limpio)</option>
+                  <option value="editorial">📰 Editorial (Estilo revista/moda)</option>
+                  <option value="commercial">🎬 Comercial (Publicidad profesional)</option>
+                  <option value="documentary">📷 Documental (Realista, natural)</option>
                 </select>
-                <p className="text-sm text-muted-foreground">
-                  Define el estilo visual de las imágenes generadas
-                </p>
+                <div className="text-sm space-y-1">
+                  <p className="text-muted-foreground"><strong>Product Only:</strong> Para ferreterías, tiendas.</p>
+                  <p className="text-muted-foreground"><strong>Professional Portrait:</strong> Para coaches, modelos.</p>
+                  <p className="text-muted-foreground"><strong>Lifestyle:</strong> Para servicios, productos en uso.</p>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -850,11 +878,16 @@ export const CompanyInfoSection = () => {
                   id="brand_personality"
                   value={formData.brand_personality}
                   onChange={(e) => handleInputChange('brand_personality', e.target.value)}
-                  placeholder="Ej: Elegante, juvenil, profesional, audaz, amigable, innovador..."
-                  className="min-h-[100px]"
+                  placeholder="Ejemplos específicos:
+          
+• Ferretería: 'Confiable, profesional, orientada a resultados. Soluciones prácticas para construcción.'
+• Coach Personal: 'Inspiradora, empática, motivacional. Enfoque en transformación personal.'
+• Restaurante: 'Cálido, familiar, acogedor. Tradición y sabor casero.'
+• Tech Startup: 'Innovadora, disruptiva, futurista. Soluciones cutting-edge.'"
+                  className="min-h-[120px]"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Describe la personalidad y tono de tu marca
+                  💡 <strong>Tip:</strong> Sé específico. Esto define el tono visual y emocional de tus posts.
                 </p>
               </div>
 
@@ -864,16 +897,25 @@ export const CompanyInfoSection = () => {
                   id="target_audience_details"
                   value={formData.target_audience_details}
                   onChange={(e) => handleInputChange('target_audience_details', e.target.value)}
-                  placeholder="Ej: Profesionales entre 25-40 años, interesados en tecnología y productividad..."
-                  className="min-h-[100px]"
+                  placeholder="Describe DETALLADAMENTE tu audiencia:
+
+Ejemplo 1 (Ferretería):
+'Constructores profesionales, maestros de obra, personal de mantenimiento. Edad 25-55 años, buscan herramientas de calidad, valoran durabilidad y precio justo.'
+
+Ejemplo 2 (Coach):
+'Profesionales 30-45 años, ejecutivos buscando desarrollo personal, emprendedores con estrés. Quieren resultados rápidos y prácticos.'
+
+Ejemplo 3 (Restaurante):
+'Familias locales, trabajadores de oficina cercanas, foodies. Buscan comida casera, ambiente acogedor, precios accesibles.'"
+                  className="min-h-[140px]"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Describe detalladamente a tu audiencia objetivo
+                  💡 Incluye: edad, ocupación, necesidades, valores, comportamiento.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="visual_references">Referencias Visuales</Label>
+                <Label htmlFor="visual_references">Referencias Visuales (Keywords)</Label>
                 <Textarea
                   id="visual_references"
                   value={Array.isArray(formData.visual_references) ? formData.visual_references.join(', ') : ''}
@@ -885,19 +927,37 @@ export const CompanyInfoSection = () => {
                       visual_references: references
                     }));
                   }}
-                  placeholder="Ej: minimalista, colores pastel, fotografía natural, diseño flat..."
-                  className="min-h-[80px]"
+                  placeholder="Keywords visuales que definen tu estilo (separar por comas):
+
+Ejemplo 1 (Ferretería):
+'producto en acción, fondo de obra, iluminación comercial, textura industrial, colores tierra, herramientas profesionales'
+
+Ejemplo 2 (Coach):
+'luz natural, fondo neutro, retrato profesional, expresión motivacional, ambiente minimalista, colores cálidos'
+
+Ejemplo 3 (Moda):
+'iluminación dramática, fondo urbano, pose dinámica, estilo editorial, colores vibrantes, textura premium'"
+                  className="min-h-[100px]"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Keywords o referencias de estilo visual (separadas por comas)
+                  💡 Estos keywords guían directamente la generación de imágenes.
                 </p>
               </div>
 
-              <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900">
-                <p className="text-sm text-blue-900 dark:text-blue-100">
-                  💡 <strong>Tip:</strong> Estos campos ayudan a la IA a generar contenido más personalizado y alineado con la identidad de tu marca. 
-                  Cuanto más detallada sea la información, mejores serán los resultados.
-                </p>
+              {/* Ejemplo visual de lo que lograrás */}
+              <div className="border-2 border-primary/20 rounded-lg p-4 bg-primary/5">
+                <p className="text-sm font-semibold mb-2">📊 Ejemplo de Análisis Generado:</p>
+                <div className="text-xs space-y-1 text-muted-foreground font-mono">
+                  <p><strong>Mensaje:</strong> "Hoy abierto 8am-1pm"</p>
+                  <p><strong>Sistema detecta:</strong> informative → minimal → text-focused</p>
+                  <p><strong>Resultado:</strong> Post limpio, tipografía grande, fondo sólido con tu paleta</p>
+                  <div className="mt-2 p-2 bg-background rounded border text-[10px]">
+                    <p>✓ Intención: informativa</p>
+                    <p>✓ Estilo "Minimalista": fondo #FFFFFF, texto 80-120pt</p>
+                    <p>✓ Paleta aplicada: {formData.brand_colors?.primary || '#3b82f6'}</p>
+                    <p>✓ Logo: esquina superior derecha (8% margen)</p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

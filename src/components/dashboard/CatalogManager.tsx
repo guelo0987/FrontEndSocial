@@ -366,13 +366,28 @@ export const CatalogManager = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="description">Descripción</Label>
+                    <Label htmlFor="description">Descripción del Objetivo *</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => handleFormChange('description', e.target.value)}
-                      placeholder="Describe el propósito de este objetivo..."
-                      rows={3}
+                      placeholder="Describe el propósito y enfoque de este objetivo:
+
+Ejemplo para 'Promoción':
+- Destacar oferta o descuento
+- Crear urgencia (tiempo limitado)
+- Mostrar producto/servicio claramente
+- CTA directo y visible
+- Colores llamativos
+
+Ejemplo para 'Educativo':
+- Información clara y organizada
+- Tipografía legible
+- Estructura jerárquica
+- Espacio para texto abundante
+- Colores neutros que no distraigan"
+                      rows={6}
+                      className="font-mono text-sm"
                     />
                   </div>
                   <div className="flex items-center space-x-2">
@@ -468,14 +483,40 @@ export const CatalogManager = () => {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="description">Descripción</Label>
+                    <Label htmlFor="description">Descripción del Estilo *</Label>
                     <Textarea
                       id="description"
                       value={formData.description}
                       onChange={(e) => handleFormChange('description', e.target.value)}
-                      placeholder="Describe las características de este estilo..."
-                      rows={3}
+                      placeholder="Describe ESPECÍFICAMENTE este estilo visual:
+    
+Ejemplo para 'Minimalista':
+- Fondo sólido o degradado suave
+- Tipografía grande, sans-serif bold
+- Máximo 2-3 colores de la paleta
+- Espacios en blanco abundantes (30-40% del canvas)
+- Sin texturas ni elementos decorativos
+- Composición centrada y simétrica
+
+Ejemplo para 'Vibrante y Dinámico':
+- Colores saturados y contrastes altos
+- Múltiples elementos visuales (3-5)
+- Tipografía variada (2-3 pesos)
+- Composición asimétrica
+- Texturas o patrones sutiles
+- Energía y movimiento visual"
+                      rows={8}
+                      className="font-mono text-sm"
                     />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      ⚠️ CRÍTICO: Esta descripción guía directamente la generación de imágenes. 
+                      Sé ESPECÍFICO y CONCRETO. Usa términos visuales claros.
+                    </p>
+                    {formData.description && formData.description.length < 50 && (
+                      <p className="text-xs text-destructive mt-1">
+                        ⚠️ Descripción muy corta. Añade más detalles específicos para mejores resultados.
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
                     <Switch
@@ -559,14 +600,30 @@ export const CatalogManager = () => {
               />
             </div>
             <div>
-              <Label htmlFor="edit-description">Descripción</Label>
+              <Label htmlFor="edit-description">Descripción *</Label>
               <Textarea
                 id="edit-description"
                 value={formData.description}
                 onChange={(e) => handleFormChange('description', e.target.value)}
-                placeholder="Descripción detallada..."
-                rows={3}
+                placeholder={activeTab === 'objectives' 
+                  ? "Describe el propósito y enfoque de este objetivo:\n\nEjemplo para 'Promoción':\n- Destacar oferta o descuento\n- Crear urgencia (tiempo limitado)\n- Mostrar producto/servicio claramente\n- CTA directo y visible\n- Colores llamativos"
+                  : "Describe ESPECÍFICAMENTE este estilo visual:\n\nEjemplo para 'Minimalista':\n- Fondo sólido o degradado suave\n- Tipografía grande, sans-serif bold\n- Máximo 2-3 colores de la paleta\n- Espacios en blanco abundantes (30-40% del canvas)\n- Sin texturas ni elementos decorativos\n- Composición centrada y simétrica"}
+                rows={activeTab === 'objectives' ? 6 : 8}
+                className="font-mono text-sm"
               />
+              {activeTab === 'styles' && (
+                <>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    ⚠️ CRÍTICO: Esta descripción guía directamente la generación de imágenes. 
+                    Sé ESPECÍFICO y CONCRETO. Usa términos visuales claros.
+                  </p>
+                  {formData.description && formData.description.length < 50 && (
+                    <p className="text-xs text-destructive mt-1">
+                      ⚠️ Descripción muy corta. Añade más detalles específicos para mejores resultados.
+                    </p>
+                  )}
+                </>
+              )}
             </div>
             <div className="flex items-center space-x-2">
               <Switch

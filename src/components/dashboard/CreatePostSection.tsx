@@ -39,6 +39,11 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
     originalMessage: string;
     postId: number;
   } | null>(null);
+  const [analysisPreview, setAnalysisPreview] = useState<{
+    intent: string;
+    approach: string;
+    focus: string;
+  } | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasNotifiedCallbackRef = useRef(false);
@@ -303,6 +308,36 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
     }
   }, [lastGenerated]); // Solo depende de lastGenerated, no de handleRegenerate
 
+  // Analizar mensaje en tiempo real para dar feedback
+  useEffect(() => {
+    if (message.trim().length > 10) {
+      const lowerMessage = message.toLowerCase();
+      
+      let intent = 'announcement';
+      let approach = 'balanced';
+      let focus = 'balanced';
+      
+      // Detección simple de intención
+      if (lowerMessage.includes('horario') || lowerMessage.includes('abierto') || lowerMessage.includes('cerrado')) {
+        intent = 'informative';
+        approach = 'minimal';
+        focus = 'text';
+      } else if (lowerMessage.includes('descuento') || lowerMessage.includes('oferta') || lowerMessage.includes('%')) {
+        intent = 'promotional';
+        approach = 'balanced';
+        focus = 'balanced';
+      } else if (lowerMessage.includes('nuevo') || lowerMessage.includes('lanzamiento')) {
+        intent = 'announcement';
+        approach = 'rich';
+        focus = 'image';
+      }
+      
+      setAnalysisPreview({ intent, approach, focus });
+    } else {
+      setAnalysisPreview(null);
+    }
+  }, [message]);
+
   return (
     <div className="max-w-4xl mx-auto animate-fade-in">
       <h2 className="text-3xl font-bold mb-2">Crear Post</h2>
@@ -351,6 +386,54 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
             onChange={(e) => setMessage(e.target.value)}
             className="min-h-[120px] resize-none"
           />
+          
+          {/* Preview de análisis en tiempo real */}
+          {analysisPreview && (
+            <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900 space-y-2">
+              <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 flex items-center gap-2">
+                <Sparkles className="w-3 h-3" />
+                Preview del Análisis IA:
+              </p>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="p-2 bg-white dark:bg-slate-900 rounded border">
+                  <p className="text-muted-foreground mb-1">Intención:</p>
+                  <p className="font-semibold capitalize">
+                    {analysisPreview.intent === 'informative' && '📋 Informativa'}
+                    {analysisPreview.intent === 'promotional' && '🎁 Promocional'}
+                    {analysisPreview.intent === 'announcement' && '📢 Anuncio'}
+                  </p>
+                </div>
+                <div className="p-2 bg-white dark:bg-slate-900 rounded border">
+                  <p className="text-muted-foreground mb-1">Enfoque:</p>
+                  <p className="font-semibold capitalize">
+                    {analysisPreview.approach === 'minimal' && '✨ Minimal'}
+                    {analysisPreview.approach === 'balanced' && '⚖️ Balanceado'}
+                    {analysisPreview.approach === 'rich' && '🎨 Rico'}
+                  </p>
+                </div>
+                <div className="p-2 bg-white dark:bg-slate-900 rounded border">
+                  <p className="text-muted-foreground mb-1">Foco:</p>
+                  <p className="font-semibold capitalize">
+                    {analysisPreview.focus === 'text' && '📝 Texto'}
+                    {analysisPreview.focus === 'balanced' && '🖼️ Mixto'}
+                    {analysisPreview.focus === 'image' && '🎨 Imagen'}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground italic">
+                {analysisPreview.intent === 'informative' && 
+                  'Se generará un diseño limpio con tipografía dominante'}
+                {analysisPreview.intent === 'promotional' && 
+                  'Se generará un diseño llamativo pero claro con balance imagen/texto'}
+                {analysisPreview.intent === 'announcement' && 
+                  'Se generará un diseño impactante con imagen protagonista'}
+              </p>
+            </div>
+          )}
+          
+          <p className="text-xs text-muted-foreground">
+            💡 <strong>Tip:</strong> El sistema analiza tu mensaje automáticamente para determinar el mejor enfoque visual
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -387,11 +470,28 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
               <SelectContent>
                 {styles.filter(styleItem => styleItem.is_active).map((styleItem) => (
                   <SelectItem key={styleItem.id} value={styleItem.id.toString()}>
-                    {styleItem.name}
+                    <div className="flex flex-col py-1">
+                      <span className="font-medium">{styleItem.name}</span>
+                      {styleItem.description && (
+                        <span className="text-xs text-muted-foreground line-clamp-2 mt-1">
+                          {styleItem.description.substring(0, 80)}...
+                        </span>
+                      )}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            
+            {/* Mostrar descripción completa del estilo seleccionado */}
+            {styleId && styles.find(s => s.id === styleId)?.description && (
+              <div className="p-3 bg-muted rounded-lg text-xs">
+                <p className="font-semibold mb-1">Descripción del estilo:</p>
+                <p className="text-muted-foreground whitespace-pre-line">
+                  {styles.find(s => s.id === styleId)?.description}
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -498,7 +598,7 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
         <div className="flex gap-3">
           <Button
             onClick={handleGenerate}
-            disabled={isGenerating || isRegenerating}
+            disabled={isGenerating || isRegenerating || !message.trim() || !objectiveId}
             className="flex-1 h-12 text-base font-semibold"
             size="lg"
           >
@@ -511,6 +611,7 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
               <>
                 <Sparkles className="mr-2 w-5 h-5" />
                 Generar Post
+                {(!message.trim() || !objectiveId) && ' (Completa los campos)'}
               </>
             )}
           </Button>
@@ -522,7 +623,7 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
               variant="outline"
               className="h-12 px-6"
               size="lg"
-              title="Generar nueva versión"
+              title="Generar nueva versión (variación coherente)"
             >
               {isRegenerating ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -534,6 +635,40 @@ export const CreatePostSection = ({ onPostGenerated, onRegenerateCallback }: Cre
             </Button>
           )}
         </div>
+
+        {/* Agregar indicadores de progreso durante generación */}
+        {isGenerating && (
+          <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-900 space-y-3">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Generando tu post...
+              </span>
+            </div>
+            <div className="space-y-2 text-xs text-blue-800 dark:text-blue-200">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" />
+                <span>Analizando mensaje e intención</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" style={{ animationDelay: '0.2s' }} />
+                <span>Interpretando estilo visual "{styles.find(s => s.id === styleId)?.name}"</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" style={{ animationDelay: '0.4s' }} />
+                <span>Aplicando paleta de colores de tu marca</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" style={{ animationDelay: '0.6s' }} />
+                <span>Generando dirección de arte personalizada</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse" style={{ animationDelay: '0.8s' }} />
+                <span>Creando imagen con IA...</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

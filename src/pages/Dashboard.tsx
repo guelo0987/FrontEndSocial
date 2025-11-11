@@ -7,6 +7,7 @@ import { CompanyInfoSection } from "@/components/dashboard/CompanyInfoSection";
 import { PostsSection } from "@/components/dashboard/PostsSection";
 import { TemplateManager } from "@/components/dashboard/TemplateManager";
 import { CatalogManager } from "@/components/dashboard/CatalogManager";
+import { TipsPanel } from "@/components/dashboard/TipsPanel";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 const Dashboard = () => {
@@ -32,10 +33,17 @@ const Dashboard = () => {
         <div className="flex-1 flex overflow-hidden">
           <main className="flex-1 overflow-y-auto p-6 lg:p-8">
             {activeSection === "crear" && (
-              <CreatePostSection 
-                onPostGenerated={setGeneratedPost}
-                onRegenerateCallback={(callback) => setRegenerateCallback({ fn: callback })}
-              />
+              <div className="space-y-6">
+                <CreatePostSection 
+                  onPostGenerated={setGeneratedPost}
+                  onRegenerateCallback={(callback) => setRegenerateCallback({ fn: callback })}
+                />
+                
+                {/* Tips panel - solo en desktop */}
+                <div className="hidden lg:block">
+                  <TipsPanel />
+                </div>
+              </div>
             )}
             {activeSection === "historial" && (
               <div className="animate-fade-in">
