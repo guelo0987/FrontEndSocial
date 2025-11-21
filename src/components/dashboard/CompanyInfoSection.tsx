@@ -48,7 +48,7 @@ export const CompanyInfoSection = () => {
     photography_style: '',
     brand_personality: '',
     target_audience_details: '',
-    visual_references: []
+    visual_references: ''
   });
 
   const { success, error, info } = useNotifications();
@@ -71,21 +71,22 @@ export const CompanyInfoSection = () => {
       setIsLoading(true);
       const response = await companyInfoService.getCompanyInfo();
       
-      if (ApiResponseHandler.isSuccess(response)) {
+      if (ApiResponseHandler.isSuccess(response) && response.data) {
+        const companyData = response.data;
         
-        setCompanyInfo(response.data);
+        setCompanyInfo(companyData);
         setHasCompanyInfo(true);
         setFormData({
-          company_name: response.data.company_name,
-          business_description: response.data.business_description || '',
-          address: response.data.address || '',
-          phone: response.data.phone || '',
-          website: response.data.website || '',
-          email: response.data.email || '',
-          hashtags: response.data.hashtags || '',
-          logo_path: response.data.logo_path || '',
-          template_style: response.data.template_style || 'modern',
-          brand_colors: response.data.brand_colors || {
+          company_name: companyData.company_name || '',
+          business_description: companyData.business_description || '',
+          address: companyData.address || '',
+          phone: companyData.phone || '',
+          website: companyData.website || '',
+          email: companyData.email || '',
+          hashtags: companyData.hashtags || '',
+          logo_path: companyData.logo_path || '',
+          template_style: companyData.template_style || 'modern',
+          brand_colors: companyData.brand_colors || {
             primary: '#3b82f6',
             secondary: '#8b5cf6',
             accent: '#f59e0b',
@@ -93,12 +94,30 @@ export const CompanyInfoSection = () => {
             text: '#1f2937'
           },
           // Nuevos campos de contexto de negocio
-          business_type: response.data.business_type || '',
-          photography_style: response.data.photography_style || '',
-          brand_personality: response.data.brand_personality || '',
-          target_audience_details: response.data.target_audience_details || '',
-          visual_references: response.data.visual_references || []
+          business_type: companyData.business_type || '',
+          photography_style: companyData.photography_style || '',
+          brand_personality: companyData.brand_personality || '',
+          target_audience_details: companyData.target_audience_details || '',
+          visual_references: typeof companyData.visual_references === 'string'
+            ? companyData.visual_references
+            : Array.isArray(companyData.visual_references)
+            ? companyData.visual_references.join(', ')
+            : ''
         });
+        
+        // Check if auto context exists
+        const visualRefs = companyData.visual_references;
+        const hasVisualRefs = typeof visualRefs === 'string'
+          ? visualRefs.trim().length > 0
+          : Array.isArray(visualRefs) && visualRefs.length > 0;
+        
+        setHasAutoContext(
+          !!(companyData.business_type || 
+             companyData.photography_style || 
+             companyData.brand_personality || 
+             companyData.target_audience_details || 
+             hasVisualRefs)
+        );
       } else if (ApiResponseHandler.isError(response) && response.error.code === 'NOT_FOUND') {
         setHasCompanyInfo(false);
         info({
@@ -157,14 +176,30 @@ export const CompanyInfoSection = () => {
       if (ApiResponseHandler.isSuccess(response)) {
         const { context, was_generated } = response.data;
         
+        // Safety check: ensure context exists
+        if (!context) {
+          error({
+            title: 'Error al generar contexto',
+            description: 'El servidor no devolvió un contexto válido'
+          });
+          return;
+        }
+        
         // Update form with generated context
+        // Convert visual_references to string if it's an array (backward compatibility)
+        const visualRefsString = typeof context.visual_references === 'string'
+          ? context.visual_references
+          : Array.isArray(context.visual_references)
+          ? context.visual_references.join(', ')
+          : '';
+        
         setFormData(prev => ({
           ...prev,
-          business_type: context.business_type,
-          photography_style: context.photography_style,
-          brand_personality: context.brand_personality,
-          target_audience_details: context.target_audience_details,
-          visual_references: context.visual_references
+          business_type: context.business_type || '',
+          photography_style: context.photography_style || '',
+          brand_personality: context.brand_personality || '',
+          target_audience_details: context.target_audience_details || '',
+          visual_references: visualRefsString
         }));
         
         setHasAutoContext(true);
@@ -915,32 +950,25 @@ Ejemplo 3 (Restaurante):
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="visual_references">Referencias Visuales (Keywords)</Label>
+                <Label htmlFor="visual_references">Referencias Visuales</Label>
                 <Textarea
                   id="visual_references"
-                  value={Array.isArray(formData.visual_references) ? formData.visual_references.join(', ') : ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    const references = value.split(',').map(ref => ref.trim()).filter(ref => ref !== '');
-                    setFormData(prev => ({
-                      ...prev,
-                      visual_references: references
-                    }));
-                  }}
-                  placeholder="Keywords visuales que definen tu estilo (separar por comas):
+                  value={typeof formData.visual_references === 'string' ? formData.visual_references : ''}
+                  onChange={(e) => handleInputChange('visual_references', e.target.value)}
+                  placeholder="Descripción de referencias visuales (texto libre):
 
 Ejemplo 1 (Ferretería):
-'producto en acción, fondo de obra, iluminación comercial, textura industrial, colores tierra, herramientas profesionales'
+'Estilo minimalista con iluminación suave, enfocada en productos naturales. Fondo de obra, textura industrial, colores tierra.'
 
 Ejemplo 2 (Coach):
-'luz natural, fondo neutro, retrato profesional, expresión motivacional, ambiente minimalista, colores cálidos'
+'Luz natural, fondo neutro, retrato profesional con expresión motivacional. Ambiente minimalista, colores cálidos.'
 
 Ejemplo 3 (Moda):
-'iluminación dramática, fondo urbano, pose dinámica, estilo editorial, colores vibrantes, textura premium'"
+'Iluminación dramática, fondo urbano, pose dinámica. Estilo editorial, colores vibrantes, textura premium.'"
                   className="min-h-[100px]"
                 />
                 <p className="text-sm text-muted-foreground">
-                  💡 Estos keywords guían directamente la generación de imágenes.
+                  💡 Esta descripción guía directamente la generación de imágenes. Describe el estilo visual que deseas.
                 </p>
               </div>
 

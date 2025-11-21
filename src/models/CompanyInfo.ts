@@ -16,7 +16,7 @@ export interface CompanyInfo {
   photography_style?: string;  // 'professional_portrait', 'lifestyle', 'product_only', 'editorial', 'commercial'
   brand_personality?: string;  // Descripción de la personalidad de marca (elegante, juvenil, profesional, etc.)
   target_audience_details?: string;  // Descripción detallada del público objetivo
-  visual_references?: string[];  // Referencias visuales o keywords de estilo
+  visual_references?: string | string[];  // Referencias visuales o keywords de estilo (string para nuevo formato, array para compatibilidad)
   created_at: string;
   updated_at: string;
 }
@@ -45,7 +45,7 @@ export interface CompanyInfoCreateRequest {
   photography_style?: string;
   brand_personality?: string;
   target_audience_details?: string;
-  visual_references?: string[];
+  visual_references?: string | string[];
 }
 
 export interface CompanyInfoUpdateRequest {
@@ -64,7 +64,7 @@ export interface CompanyInfoUpdateRequest {
   photography_style?: string;
   brand_personality?: string;
   target_audience_details?: string;
-  visual_references?: string[];
+  visual_references?: string | string[];
 }
 
 export interface CompanyInfoResponse {
@@ -85,7 +85,7 @@ export interface CompanyInfoResponse {
   photography_style?: string;
   brand_personality?: string;
   target_audience_details?: string;
-  visual_references?: string[];
+  visual_references?: string | string[];
   created_at: string;
   updated_at: string;
 }
